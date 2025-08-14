@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CyberTerminal v7.0 | DDOS黑客模拟器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Consolas', 'Courier New', monospace;
+            user-select: none;
+        }
+        
+        :root {
+            --primary-color: #00cc44;
+            --background-dark: #000c00;
+            --background-darker: #000800;
+            --terminal-green: #00bb00;
+            --accent-color: #00ff66;
+            --error-color: #ff5555;
+            --warning-color: #ffff00;
+            --info-color: #00ffff;
+        }
+        
+        body {
+            background-color: var(--background-dark);
+            color: var(--primary-color);
+            height: 100vh;
+            overflow: hidden;
+            touch-action: pan-x;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(0, 80, 0, 0.1) 0%, transparent 15%),
+                radial-gradient(circle at 90% 80%, rgba(0, 100, 0, 0.1) 0%, transparent 15%);
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            min-width: 100vw;
+        }
+        
+        .status-bar {
+            padding: 6px 15px;
+            background-color: rgba(0, 30, 0, 0.4);
+            font-size: 0.75em;
+            display: flex;
+            justify-content: space-between;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #002a00;
+            position: relative;
+            box-shadow: 0 1px 3px rgba(0, 255, 100, 0.1);
+        }
+        
+        .status-content {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            background-color: var(--accent-color);
+            box-shadow: 0 0 4px rgba(0, 255, 100, 0.5);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            background: rgba(0, 50, 0, 0.3);
+            border: 1px solid var(--terminal-green);
+            color: var(--terminal-green);
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.7em;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .action-btn:hover {
+            background: rgba(0, 80, 0, 0.5);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+        
+        .action-btn i {
+            font-size: 0.85em;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .toolbar {
+            width: 220px;
+            background-color: var(--background-darker);
+            border-right: 1px solid var(--terminal-green);
+            padding: 15px 8px;
+            overflow-y: auto;
+            font-size: 0.7em;
+            transition: transform 0.3s ease;
+        }
+        
+        .terminal-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-color: rgba(0, 10, 0, 0.3);
+        }
+        
+        .terminal {
+            padding: 15px;
+            overflow: auto;
+            flex: 1;
+            height: calc(100% - 40px);
+        }
+        
+        .prompt {
+            padding: 5px 15px;
+            display: flex;
+            align-items: center;
+            border-top: 1px solid #004400;
+            background-color: rgba(0, 20, 0, 0.6);
+            height: 40px;
+        }
+        
+        .prompt-text {
+            font-size: 0.7em;
+            color: var(--accent-color);
+            margin-right: 8px;
+        }
+        
+        #command-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--primary-color);
+            font-family: 'Consolas', monospace;
+            font-size: 0.75em;
+            padding: 5px;
+            caret-color: var(--accent-color);
+            letter-spacing: 0.5px;
+        }
+        
+        #command-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 1px var(--accent-color);
+        }
+        
+        h1 {
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            text-align: center;
+            color: var(--accent-color);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            text-shadow: 0 0 8px rgba(0, 255, 100, 0.4);
+            position: relative;
+            padding-bottom: 8px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 25%;
+            right: 25%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, var(--terminal-green), transparent);
+        }
+        
+        .tool {
+            padding: 9px 7px;
+            margin-bottom: 8px;
+            border: 1px solid #002200;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.75em;
+            background: rgba(0, 20, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tool:hover {
+            background-color: rgba(0, 80, 0, 0.3);
+            border-color: var(--terminal-green);
+        }
+        
+        .tool.active {
+            background-color: rgba(0, 100, 0, 0.25);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(0, 255, 100, 0.3);
+        }
+        
+        .tool::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--accent-color);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tool.active::before {
+            opacity: 1;
+        }
+        
+        .cmd {
+            font-size: 0.7em;
+            line-height: 1.4;
+            white-space: pre;
+            word-wrap: break-word;
+        }
+        
+        .cmd-line {
+            display: flex;
+            align-items: flex-start;
+            line-height: 1.4;
+            margin: 3px 0;
+        }
+        
+        .prompt-indicator {
+            color: var(--accent-color);
+            margin-right: 8px;
+            font-size: 1em;
+            min-width: 12px;
+        }
+        
+        .cursor {
+            display: inline-block;
+            width: 6px;
+            height: 12px;
+            background-color: var(--accent-color);
+            margin-left: 3px;
+            animation: blink 1.2s infinite;
+            vertical-align: middle;
+        }
+        
+        .progress-container {
+            margin: 15px 0;
+            border: 1px solid #003300;
+            border-radius: 2px;
+            overflow: hidden;
+            height: 8px;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--background-darker), var(--accent-color));
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .output-text {
+            color: var(--primary-color);
+        }
+        
+        .error-text {
+            color: var(--error-color);
+        }
+        
+        .warning-text {
+            color: var(--warning-color);
+        }
+        
+        .info-text {
+            color: var(--info-color);
+        }
+        
+        .hex-block {
+            font-size: 0.65em;
+            color: #00aa55;
+            letter-spacing: 0.9px;
+            line-height: 1.3;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px dashed #003300;
+            font-size: 0.7em;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.1; }
+        }
+        
+        .attack-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+            font-size: 0.7em;
+        }
+        
+        .stat-box {
+            border: 1px solid #003300;
+            padding: 5px 8px;
+            background-color: rgba(0, 30, 0, 0.25);
+        }
+        
+        .stat-value {
+            color: var(--accent-color);
+            font-size: 1em;
+            font-weight: bold;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 40px;
+            right: 20px;
+            background-color: rgba(0, 40, 0, 0.95);
+            border: 1px solid var(--terminal-green);
+            padding: 10px 15px;
+            font-size: 0.75em;
+            display: none;
+            max-width: 300px;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+        }
+        
+        @media (orientation: portrait) {
+            body::before {
+                content: "请旋转设备至横屏模式";
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: #001a00;
+                color: var(--error-color);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 2em;
+                z-index: 100;
+                text-align: center;
+                padding: 20px;
+            }
+        }
+        
+        /* 终端内容动画效果 */
+        .fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 0.4; }
+            100% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 状态栏 - 根据用户图片设计 -->
+        <div class="status-bar">
+            <div class="status-content">
+                <div class="status-item">
+                    <span class="status-indicator status-success"></span>
+                    SYSTEM: STEALTH MODE
+                </div>
+                <div class="status-item">
+                    CONN: ENCRYPTED (TOR + VPN)
+                </div>
+                <div class="status-item">
+                    USER: ANONYMOUS#<span id="random-user-id">${Math.floor(Math.random()*9000)+1000}</span>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <div class="action-btn" id="btn-tools">
+                    <i class="fas fa-tools"></i>工具
+                </div>
+                <div class="action-btn" id="btn-fullscreen">
+                    <i class="fas fa-expand"></i>全屏
+                </div>
+            </div>
+        </div>
+        
+        <div class="main-content">
+            <div class="toolbar" id="toolbar">
+                <h1>工具库 (20个可用)</h1>
+                <div class="tool" data-target="scanner">网络扫描器</div>
+                <div class="tool" data-target="payload">有效载荷生成器</div>
+                <div class="tool" data-target="botnet">僵尸网络管理器</div>
+               极客div class="tool" data-target="synflood">SYN 洪水攻击</div>
+                <div class="tool" data-target="udpflood">UDP 洪水攻击</div>
+                <div class="tool" data-target="icmpflood">ICMP 洪水攻击</div>
+                <div class="tool" data-target="httpflood">HTTP 洪水攻击</div>
+                <div class="tool" data-target="dnsamp">DNS 放大攻击</div>
+                <div class="tool" data-target="ntpamp">NTP 放大攻击</div>
+                <div class="tool" data-target="vpn">VPN 绕过</div>
+                <div class="tool" data-target="proxy">代理链设置</div>
+                <div class="tool" data-target="encrypt">通信加密</div>
+                <div class="tool" data-target="traffic">流量分析器</div>
+                <div class="tool" data-target="decoy">诱饵生成器</div>
+                <div class="tool" data-target="ipspoof">IP 欺骗</div>
+                <div class="tool" data-target="logclear">日志清除器</div>
+                <div class="tool" data-target="fuzzer">协议模糊测试</div>
+                <div class="tool" data-target="keylogger">键盘记录模拟</div>
+                <div class="tool" data-target="backdoor">后门创建器</div>
+                <div class="tool" data-target="exit">安全退出</div>
+            </div>
+            
+            <div class="terminal-container">
+                <div id="terminal-content" class="terminal">
+                    <div class="cmd-line fade-in">
+                        <div class="prompt-indicator">></div>
+                        <div class="cmd">system initialize --mode stealth</div>
+                    </div>
+                    <div class="cmd-line fade-in" style="animation-delay: 0.1s">
+                        <div class="prompt-indicator">></div>
+                        <div class="cmd">starting CyberTerminal v7.0...</div>
+                    </div>
+                    <div class="cmd-line fade-in" style="animation-delay: 0.2s">
+                        <div class="prompt-indicator">></div>
+                        <div class="cmd">bypassing security protocols... <span class="info-text">[SUCCESS]</span></div>
+                    </div>
+                    <div class="cmd-line fade-in" style="animation-delay: 0.3s">
+                        <div class="prompt-indicator">></div>
+                        <div class="cmd">connecting to proxy chain... <span class="info-text">[TOR => PROXY_CHAIN => 3 PROXIES]</span></div>
+                    </div>
+                    <div class="cmd-line fade-in" style="animation-delay: 0.4s">
+                        <div class="prompt-indicator">></div>
+                        <div class="cmd">user authentication... <span class="info-text">[ANONYMOUS#${Math.floor(Math.random()*9000)+1000}]</span></div>
+                    </div>
+                    <div class="cmd-line fade-in" style="animation-delay: 0.5s">
+                        <div class="prompt-indicator">></div>
+                        <div class="cmd">system ready</div>
+                    </div>
+                    <div class="cmd-line fade-in" style="animation-delay: 0.6s">
+                        <div class="prompt-indicator">></div>
+                        <div class="cmd">last login: 2025-08-12 02:47:32 +0000</div>
+                    </div>
+                    <div class="cmd-line fade-in" style="animation-delay: 0.7s">
+                        <div class="prompt-indicator">></div>
+                        <div class="cmd">type '<span class="info-text">help</span>' for commands list or select a tool</div>
+                    </div>
+                    <div class="cmd-line fade-in" style="animation-delay: 0.8s">
+                        <div class="prompt-indicator">></div>
+                        <div id="command" class="cmd">scan --target 192.168.1.0/24<span class="cursor"></span></div>
+                    </div>
+                </div>
+                
+                <div class="prompt">
+                    <div class="prompt-text">cmd></div>
+                    <input type="text" id="command-input" placeholder="输入命令并按回车执行..." autocomplete="off">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification">CyberTerminal通知：系统准备就绪</div>
+
+    <script>
+        // 模拟功能执行
+        const tools = document.querySelectorAll('.tool');
+        const terminal = document.getElementById('terminal-content');
+        const commandInput = document.getElementById('command-input');
+        const btnFullscreen = document.getElementById('btn-fullscreen');
+        const btnTools = document.getElementById('btn-tools');
+        const toolbar = document.getElementById('toolbar');
+        const notification = document.getElementById('notification');
+        const randomUserId = document.getElementById('random-user-id');
+        
+        let currentTool = null;
+        let isExecuting = false;
+        let commandHistory = [];
+        let historyIndex = -1;
+        
+        // 更新随机用户ID
+        function updateRandomUserId() {
+            randomUserId.textContent = Math.floor(Math.random()*9000)+1000;
+        }
+        
+        // 初始随机ID
+        updateRandomUserId();
+        
+        // 每分钟更新一次随机ID
+        setInterval(updateRandomUserId, 60000);
+        
+        // 全屏功能处理
+        btnFullscreen.addEventListener('click', toggleFullscreen);
+        btnTools.addEventListener('click', toggleToolbar);
+        
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    showNotification(`全屏错误: ${err.message}`);
+                });
+                btnFullscreen.innerHTML = '<i class="fas fa-compress"></i>退出';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    btnFullscreen.innerHTML = '<i class="fas fa-expand"></i>全屏';
+                }
+            }
+        }
+        
+        function toggleToolbar() {
+            toolbar.classList.toggle('toolbar-hidden');
+            if (toolbar.classList.contains('toolbar-hidden')) {
+                btnTools.innerHTML = '<i class="fas fa-tools"></i>显示工具';
+            } else {
+                btnTools.innerHTML = '<i class="fas fa-tools"></i>隐藏工具';
+            }
+        }
+        
+        // 显示通知
+        function showNotification(message) {
+            notification.innerHTML = message;
+            notification.style.display = 'block';
+            notification.classList.add('fade-in');
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+                notification.classList.remove('fade-in');
+            }, 3000);
+        }
+        
+        // 处理工具选择
+        tools.forEach(tool => {
+            tool.addEventListener('click', function() {
+                if (isExecuting) {
+                    appendCommand('系统忙碌中，请等待当前任务完成');
+                    return;
+                }
+                
+                // 清除活跃状态
+                tools.forEach(t => t.classList.remove('active'));
+                // 设置当前为活跃状态
+                this.classList.add('active');
+                
+                currentTool = this.dataset.target;
+                const toolName = getToolName(currentTool);
+                
+                appendCommand(`已选择: ${toolName}`);
+                showToolInstructions(currentTool);
+            });
+        });
+        
+        // 命令输入处理
+        commandInput.addEventListener('keydown', function(e) {
+            if (isExecuting) {
+                e.preventDefault();
+                return;
+            }
+            
+            // 上下键历史记录
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                if (commandHistory.length === 0) return;
+                
+                if (historyIndex === -1) {
+                    historyIndex = commandHistory.length;
+                }
+                
+                historyIndex = Math.max(0, historyIndex - 1);
+                this.value = commandHistory[historyIndex] || '';
+            } 
+            else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                if (commandHistory.length === 0 || historyIndex === -1) return;
+                
+                historyIndex = Math.min(commandHistory.length, historyIndex + 1);
+                if (historyIndex >= commandHistory.length) {
+                    this.value = '';
+                } else {
+                    this.value = commandHistory[historyIndex] || '';
+                }
+            }
+            else if (e.key === 'Enter') {
+                e.preventDefault();
+                
+                const command = this.value.trim();
+                if (!command) return;
+                
+                // 保存到历史记录
+                commandHistory.push(command);
+                historyIndex = -1;
+                
+                // 处理命令
+                handleCommand(command);
+                
+                // 清除输入框
+                this.value = '';
+            }
+        });
+        
+        // 处理用户输入的命令
+        function handleCommand(command) {
+            appendCommand(`> ${command}`);
+            
+            if (command === 'help' || command === '?') {
+                showHelp();
+                return;
+            }
+            
+            if (command === 'clear') {
+                clearTerminal();
+                return;
+            }
+            
+            if (!currentTool) {
+                appendCommand('错误：请先选择一个工具');
+                return;
+            }
+            
+            isExecuting = true;
+            
+            // 根据当前工具执行不同逻辑
+            switch(currentTool) {
+                case 'scanner':
+                    executeScanner(command);
+                    break;
+                case 'payload':
+                    executePayloadGenerator(command);
+                    break;
+                case 'botnet':
+                    executeBotnetManager(command);
+                    break;
+                case 'synflood':
+                    executeSynFlood(command);
+                    break;
+                case 'udpflood':
+                    executeUDPFlood(command);
+                    break;
+                case 'icmpflood':
+                    executeICMPFlood(command);
+                    break;
+                case 'exit':
+                    if (command === 'confirm exit') {
+                        executeExit();
+                    } else {
+                        appendCommand('请确认退出，输入 "confirm exit"');
+                    }
+                    break;
+                default:
+                    executeCommonTool(command);
+            }
+        }
+        
+        function getToolName(id) {
+            const names = {
+                'scanner': '网络扫描器',
+                'payload': '有效载荷生成器',
+                'botnet': '僵尸网络管理器',
+                'synflood': 'SYN 洪水攻击',
+                'udpflood': 'UDP 洪水攻击',
+                'icmpflood': 'ICMP 洪水攻击',
+                'httpflood': 'HTTP 洪水攻击',
+                'dnsamp': 'DNS 放大攻击',
+                'ntpamp': 'NTP 放大攻击',
+                'vpn': 'VPN 绕过',
+                'proxy': '代理链设置',
+                'encrypt': '通信加密',
+                'traffic': '流量分析器',
+                'decoy': '诱饵生成器',
+                'ipspoof': 'IP 欺骗',
+                'logclear': '日志清除器',
+                'fuzzer': '协议模糊测试',
+                'keylogger': '键盘记录模拟',
+                'backdoor': '后门创建器',
+                'exit': '安全退出'
+            };
+            return names[id] || '未知工具';
+        }
+        
+        function appendCommand(text) {
+            const cmdLine = document.createElement('div');
+            cmdLine.className = 'cmd-line fade-in';
+            
+            const indicator = document.createElement('div');
+            indicator.className = 'prompt-indicator';
+            indicator.textContent = '>';
+            
+            const cmdDiv = document.createElement('div');
+            cmdDiv.className = 'cmd';
+            cmdDiv.innerHTML = text;
+            
+            cmdLine.appendChild(indicator);
+            cmdLine.appendChild(cmdDiv);
+            terminal.appendChild(cmdLine);
+            
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+        
+        function showToolInstructions(toolId) {
+            const toolName = getToolName(toolId);
+            
+            switch(toolId) {
+                case 'scanner':
+                    appendCommand(`<span class="info-text">${toolName}已准备就绪</span>`);
+                    appendCommand('命令示例:');
+                    appendCommand('  scan --target 192.168.1.0/24');
+                    appendCommand('  scan --ip 10.0.0.1-254');
+                    appendCommand('  scan --domain example.com');
+                    appendCommand('请指定目标进行扫描:');
+                    break;
+                    
+                case 'synflood':
+                    appendCommand(`<span class="info-text">${toolName}已激活</span>`);
+                    appendCommand('命令示例:');
+                    appendCommand('  attack --target 93.184.216.34 --port 80 --duration 120');
+                    appendCommand('  attack --url example.com --port 443 --intensity high');
+                    appendCommand('请指定攻击参数:');
+                    break;
+                    
+                case 'botnet':
+                    appendCommand(`<span class="info-text">${toolName}已连接</span>`);
+                    appendCommand('命令示例:');
+                    appendCommand('  status');
+                    appendCommand('  attack --target example.com --method syn --duration 300');
+                    appendCommand('  deploy --payload httpflood --target example.com');
+                    appendCommand('输入命令控制僵尸网络:');
+                    break;
+                    
+                case 'payload':
+                    appendCommand(`<span class="info-text">${toolName}已加载</span>`);
+                    appendCommand('命令示例:');
+                    appendCommand('  generate --type ransomware --os windows --evasion high');
+                    appendCommand('  generate --type backdoor --os linux --persistence true');
+                    appendCommand('指定payload参数:');
+                    break;
+                    
+                case 'exit':
+                    appendCommand(`<span class="warning-text">警告：安全退出程序</span>`);
+                    appendCommand('所有痕迹将被清除，连接将被安全中断');
+                    appendCommand('输入 <span class="info-text">confirm exit</span> 确认退出');
+                    break;
+                    
+                default:
+                    appendCommand(`<span class="info-text">${toolName}已就绪</span>`);
+                    appendCommand('请输入命令参数开始操作');
+            }
+        }
+        
+        function createProgressBar() {
+            const container = document.createElement('div');
+            container.className = 'progress-container';
+            
+            const progressBar = document.createElement('div');
+            progressBar.className = 'progress-bar';
+            container.appendChild(progressBar);
+            
+            terminal.appendChild(container);
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            return progressBar;
+        }
+        
+        function generateHexBlock(lines, columns) {
+            let hexBlock = '';
+            for (let i = 0; i < lines; i++) {
+                let line = '';
+                for (let j = 0; j < columns; j++) {
+                    line += Math.floor(Math.random()*16).toString(16) + ' ';
+                }
+                hexBlock += '<div class="hex-block">' + line + '</div>';
+            }
+            return hexBlock;
+        }
+        
+        function createAttackStats() {
+            const statsContainer = document.createElement('div');
+            statsContainer.className = 'attack-stats';
+            
+            const stats = [
+                { name: '攻击强度', value: `${Math.floor(Math.random()*20)+80}%` },
+                { name: '包/秒', value: `${(Math.random()*500000+200000).toLocaleString()}` },
+                { name: '带宽使用', value: `${(Math.random()*9+2).toFixed(2)} Gbps` },
+                { name: '成功率', value: `${Math.floor(Math.random()*25)+75}%` }
+            ];
+            
+            stats.forEach(stat => {
+                const statBox = document.createElement('div');
+                statBox.className = 'stat-box';
+                statBox.innerHTML = `<div>${stat.name}:</div><div class="stat-value">${stat.value}</div>`;
+                statsContainer.appendChild(statBox);
+            });
+            
+            terminal.appendChild(statsContainer);
+            terminal.scrollTop = terminal.scrollHeight;
+            
+            return statsContainer;
+        }
+        
+        function executeScanner(command) {
+            if (!command.startsWith('scan')) {
+                appendCommand('错误：无效命令，请使用"scan"开头');
+                isExecuting = false;
+                return;
+            }
+            
+            appendCommand('> 开始网络扫描...');
+            
+            let target = '192.168.1.0/24';
+            if (command.includes('--target')) {
+                target = command.split('--target ')[1].split(' ')[0];
+            } else if (command.includes('--ip')) {
+                target = command.split('--ip ')[1].split(' ')[0];
+            } else if (command.includes('--domain')) {
+                target = command.split('--domain ')[1].split(' ')[0];
+            }
+            
+            appendCommand(`> 扫描目标: ${target}`);
+            appendCommand('> 分析网络拓扑...');
+            
+            const progressBar = createProgressBar();
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 2;
+                progressBar.style.width = `${progress}%`;
+                
+                if (progress === 15) {
+                    appendCommand('> 检测活动设备...');
+                } else if (progress === 40) {
+                    appendCommand('> 扫描开放端口...');
+                } else if (progress === 65) {
+                    appendCommand('> 识别操作系统...');
+                } else if (progress === 85) {
+                    appendCommand('> 检测服务漏洞...');
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    
+                    const devices = Math.floor(Math.random()*10) + 3;
+                    appendCommand(`> 扫描完成: 发现 ${devices} 个活动设备`);
+                    
+                    const hexBlock = generateHexBlock(10, 18);
+                    const hexDiv = document.createElement('div');
+                    hexDiv.innerHTML = hexBlock;
+                    terminal.appendChild(hexDiv);
+                    
+                    appendCommand(`<span class="info-text">[SCAN COMPLETE - ${devices} TARGETS IDENTIFIED]</span>`);
+                    isExecuting = false;
+                }
+            }, 80);
+        }
+        
+        function executeSynFlood(command) {
+            if (!command.startsWith('attack')) {
+                appendCommand('错误：无效命令，请使用"attack"开头');
+                isExecuting = false;
+                return;
+            }
+            
+            let target = '93.184.216.34'; // example.com
+            let port = 80;
+            let duration = 120;
+            
+            if (command.includes('--target')) {
+                target = command.split('--target ')[1].split(' ')[0];
+            } else if (command.includes('--url')) {
+                target = command.split('--url ')[1].split(' ')[0];
+            }
+            
+            if (command.includes('--port')) {
+                port = command.split('--port ')[1].split(' ')[0];
+            }
+            
+            if (command.includes('--duration')) {
+                duration = parseInt(command.split('--duration ')[1].split(' ')[0]);
+            }
+            
+            appendCommand(`> 启动 SYN 洪水攻击: ${target}:${port}`);
+            appendCommand(`> 持续时间: ${duration} 秒`);
+            
+            const statsContainer = createAttackStats();
+            
+            let elapsed = 0;
+            const updateStats = setInterval(() => {
+                if (elapsed >= duration) {
+                    clearInterval(updateStats);
+                    appendCommand('<span class="info-text">[攻击完成]</span>');
+                    appendCommand(`> 目标 ${target} 响应状态: <span class="error-text">DOWN</span>`);
+                    appendCommand(`> 总数据包: ${(Math.random()*50000000).toLocaleString()}`);
+                    isExecuting = false;
+                    return;
+                }
+                
+                elapsed++;
+                statsContainer.innerHTML = '';
+                
+                const newStats = [
+                    { name: '攻击进度', value: `${Math.min(100, Math.floor(elapsed/duration*100))}%` },
+                    { name: '包/秒', value: `${(Math.random()*500000 + 200000).toLocaleString()}` },
+                    { name: '带宽', value: `${(Math.random()*8 + 3).toFixed(2)} Gbps` },
+                    { name: '成功率', value: `${Math.floor(Math.random()*20)+80}%` }
+                ];
+                
+                newStats.forEach(stat => {
+                    const statBox = document.createElement('div');
+                    statBox.className = 'stat-box';
+                    statBox.innerHTML = `<div>${stat.name}:</div><div class="stat-value">${stat.value}</div>`;
+                    statsContainer.appendChild(statBox);
+                });
+                
+                terminal.scrollTop = terminal.scrollHeight;
+            }, 1000);
+        }
+        
+        function executeCommonTool(command) {
+            appendCommand(`> 正在执行 ${getToolName(currentTool)}...`);
+            
+            const progressBar = createProgressBar();
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 3;
+                progressBar.style.width = `${progress}%`;
+                
+                if (progress === 20) {
+                    appendCommand('> 正在初始化子系统...');
+                } else if (progress === 45) {
+                    appendCommand('> 应用安全配置...');
+                } else if (progress === 70) {
+                    appendCommand('> 执行主序列...');
+                }
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    appendCommand('<span class="info-text">[操作成功完成]</span>');
+                    isExecuting = false;
+                }
+            }, 150);
+        }
+        
+        function executeExit() {
+            appendCommand('> 启动安全清理程序...');
+            
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                
+                if (progress === 10) appendCommand('> 清除操作日志...');
+                else if (progress === 30) appendCommand('> 销毁加密密钥...');
+                else if (progress === 60) appendCommand('> 中断所有连接...');
+                else if (progress === 90) appendCommand('> 删除临时文件...');
+                
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    appendCommand('<span class="info-text">[系统已安全关闭]</span>');
+                    appendCommand('所有痕迹已被清除，请关闭窗口');
+                }
+            }, 300);
+        }
+        
+        function clearTerminal() {
+            terminal.innerHTML = '';
+            appendCommand('终端已清空');
+            appendCommand('系统状态：<span class="info-text">就绪</span>');
+        }
+        
+        function showHelp() {
+            appendCommand('<span class="info-text">CyberTerminal v7.0 命令帮助</span>');
+            appendCommand('通用命令:');
+            appendCommand('  help - 显示帮助信息');
+            appendCommand('  clear - 清除终端');
+            appendCommand('  exit - 安全退出系统');
+            appendCommand('');
+            appendCommand('工具特定命令取决于当前选择的工具');
+            appendCommand('使用工具栏选择工具查看详细用法');
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                appendCommand('系统初始化完成，输入 <span class="info-text">help</span> 获取命令帮助');
+            }, 1000);
+            
+            // 设置初始工具状态
+            tools[0].classList.add('active');
+            currentTool = tools[0].dataset.target;
+            showToolInstructions(currentTool);
+            
+            // 聚焦到输入框
+            commandInput.focus();
+        });
+    </script>
+</body>
+</html>
